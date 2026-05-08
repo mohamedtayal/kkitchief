@@ -97,6 +97,35 @@ def suggest_meals(ingredients: str = "", diet: str = "تقليدي", allergies: 
         print(f"Groq API Error: {e}")
         return {"success": True, "recommended_recipes": MOCK_RECIPES}
 
+@app.get("/api/generate-weekly-plan")
+def generate_weekly_plan(ingredients: str = "", db: Session = Depends(get_db)):
+    """
+    استخدام Groq AI لاقتراح خطة أسبوعية.
+    """
+    try:
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an expert Arabic AI meal planner. Return ONLY a valid JSON array of exactly 7 objects (one for each day). Each object MUST have: 'day' (e.g., 'الأحد', 'الإثنين', etc.), 'breakfast' (string), 'lunch' (string), 'dinner' (string). Do NOT wrap in markdown. Everything in Arabic."
+                },
+                {
+                    "role": "user",
+                    "content": f"لدي هذه المكونات: {ingredients}. قم بإنشاء خطة وجبات أسبوعية (إفطار، غداء، عشاء) لمدة 7 أيام باستخدام بعض هذه المكونات."
+                }
+            ],
+            temperature=0.7,
+        )
+        response_text = completion.choices[0].message.content.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text[7:-3]
+        plan = json.loads(response_text)
+        return {"success": True, "plan": plan}
+    except Exception as e:
+        print(f"Groq API Error: {e}")
+        return {"success": False, "plan": []}
+
 @app.post("/api/leftover-transformer")
 def leftover_transformer(leftover_ingredient: str = "دجاج", db: Session = Depends(get_db)):
     """
