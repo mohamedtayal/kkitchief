@@ -268,8 +268,7 @@ async def scan_receipt(file: UploadFile = File(...)):
         return {"success": True, "extracted_items": extracted_items}
     except Exception as e:
         print(f"Vision API Error: {e}")
-        # fallback ذكي يعتمد على أسماء مشهورة في الفواتير العربية
-        return {"success": True, "extracted_items": ["خيار", "طماطم", "بطاطس", "بصل", "خضرة مشكلة"]}
+        return {"success": False, "error": "تعذر قراءة الفاتورة، يرجى التأكد من وضوح الصورة ومحاولة الرفع مرة أخرى.", "extracted_items": []}
 
 @app.get("/api/predict-restock")
 def predict_restock(db: Session = Depends(get_db)):
