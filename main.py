@@ -221,54 +221,6 @@ def chat_with_bot(chat_msg: ChatMessage, db: Session = Depends(get_db)):
 from fastapi import UploadFile, File
 import asyncio
 
-@app.post("/api/scan-receipt")
-async def scan_receipt(file: UploadFile = File(...)):
-    """
-    استخدام Groq Vision لاستخراج المكونات الحقيقية من الصورة.
-    """
-    try:
-        import base64
-        # قراءة الملف وتحويله لـ base64
-        contents = await file.read()
-        base64_image = base64.b64encode(contents).decode("utf-8")
-
-        completion = client.chat.completions.create(
-            model="llama-3.2-11b-vision-preview",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "This is a grocery receipt in Arabic. Please extract only the list of food items/ingredients. Ignore prices, dates, and quantities. Return the items as a simple JSON array of strings in Arabic. Example: ['طماطم', 'بصل']. If no items are found, return []."},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}",
-                            },
-                        },
-                    ],
-                }
-            ],
-            temperature=0.1,
-        )
-        
-        response_text = completion.choices[0].message.content.strip()
-        
-        # تحسين استخراج الـ JSON من النص
-        import re
-        json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
-        if json_match:
-            response_text = json_match.group(0)
-        else:
-            # إذا لم يجد مصفوفة، حاول استخراجها كقائمة أسطر
-            lines = [line.strip("- •*") for line in response_text.split("\n") if line.strip()]
-            extracted_items = [line for line in lines if len(line) < 30 and len(line) > 1]
-            return {"success": True, "extracted_items": extracted_items}
-            
-        extracted_items = json.loads(response_text)
-        return {"success": True, "extracted_items": extracted_items}
-    except Exception as e:
-        print(f"Vision API Error: {e}")
-        return {"success": False, "error": "تعذر قراءة الفاتورة، يرجى التأكد من وضوح الصورة ومحاولة الرفع مرة أخرى.", "extracted_items": []}
 
 @app.get("/api/predict-restock")
 def predict_restock(db: Session = Depends(get_db)):
