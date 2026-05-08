@@ -1,0 +1,11 @@
+.env
+__pycache__
+*.pyc
+sql_app.db
+*.log
+*.txt
+!requirements.txt
+!error.txt
+!output.txt
+!testout.txt
+!uvicorn_err.txt
