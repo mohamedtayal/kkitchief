@@ -21,6 +21,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Ketcheif API! The backend is running successfully."}
+
 import os
 from dotenv import load_dotenv
 
